@@ -27,15 +27,24 @@ io.on("connection", (socket) => {
     socket.join(room);
     io.to(room).emit('match_created', true)
   } )
-  socket.on('start_match', (match) => {
+  socket.on('start_match', (match, player) => {
     const room = match
     socket.join(room);
-    io.to(room).emit('match_started', room)
+    io.to(room).emit('match_started', {room, player})
   })
   socket.on('movement', (match, board, turn, player) => {
     const room = match
     console.log(player, turn);
     io.to(room).emit('move', { board, turn, player })
+  })
+  socket.on('movement_promotion', (match, board, turn, player) => {
+    const room = match
+    console.log(player, turn);
+    io.to(room).emit('move_promotion', { board, turn, player })
+  } )
+  socket.on('message', (message, match, player) => {
+    const room = match
+    io.to(room).emit('message', { message, room, player })
   } )
 });
 
