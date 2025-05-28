@@ -1,16 +1,27 @@
 import express from 'express';
 import { createServer } from "node:http";
 import { Server } from "socket.io";
+const mongoose = require ('mongoose');
+const { Schema } = mongoose;
 
-function makeid(length: number) {
-    var result           = '';
-    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
+mongoose.connect(`mongodb+srv://${process.env.db_user}:${process.env.db_password}@cluster0.symhl.mongodb.net/chess_db?retryWrites=true&w=majority&appName=Cluster0`)
+	.then((db: any) => console.log('DB is connected'))
+	.catch((err: any) => console.log(err));
+
+
+const MatchSchema = new Schema({
+		room: {type: String, required: true},
+		gameData: { type: Array, required: true },
+    turn: { type: Number, required: true },
+    countMovements: { type: Number, required: true },
+    finished: { type: Object, required: true },
+    check: { type: Object, required: false},
+    movesRecord: { type: Array, requied: false},
+    messages: { type: Array, required: false }
+	});
+
+const Match = mongoose.model('Match', MatchSchema);
+
 
 const port = 3001;
 const app = express();
@@ -22,30 +33,65 @@ const io = new Server(httpServer, {
 });
 
 io.on("connection", (socket) => {
-  socket.on('create_match', (match) => {
+  socket.on('create_match', async (match, board) => {
     const room = match
     socket.join(room);
-    io.to(room).emit('match_created', true)
   } )
-  socket.on('start_match', (match, player) => {
+  socket.on('start_match', async (match, board, player) => {
     const room = match
+    const findGame = await Match.findOne({ room });
+    if (findGame) {
+      socket.join(room);
+      io.to(room).emit('match_reanude', {room, player: player === 1 ? 2 : 1, board: findGame.gameData, turn: findGame.turn, movesRecord: findGame.movesRecord, countMovements: findGame.countMovements, check: findGame.check, finished: findGame.finished, messages: findGame.messages })
+      return
+    }
     socket.join(room);
     io.to(room).emit('match_started', {room, player})
+    io.to(room).emit('match_created', {room, player})
+    const game = new Match({
+      room,
+      gameData: board,
+      turn: 1,
+      countMovements: 0,
+      finished: false
+    })
+    await game.save()
   })
-  socket.on('movement', (match, board, turn, player) => {
+  socket.on('movement', async (match, board, turn, check) => {
     const room = match
-    console.log(player, turn);
-    io.to(room).emit('move', { board, turn, player })
+    io.to(room).emit('move', { board })
+    const findGame = await Match.findOne({ room });
+    await Match.findOneAndUpdate({_id: findGame._id}, { gameData: board.gameBoardData, countMovements: board.countMovements, turn, check })
   })
-  socket.on('movement_promotion', (match, board, turn, player) => {
+  socket.on('movement_promotion', async (match, board, turn, player) => {
     const room = match
-    console.log(player, turn);
+    const findGame = await Match.findOne({ room });
+    await Match.findOneAndUpdate({_id: findGame._id}, { gameData: board.gameBoardData, countMovements: board.countMovements, turn  })
     io.to(room).emit('move_promotion', { board, turn, player })
   } )
-  socket.on('message', (message, match, player) => {
+  socket.on('message', async (message, match, player) => {
     const room = match
     io.to(room).emit('message', { message, room, player })
+    const findGame = await Match.findOne({ room });
+    const messagesHistory = findGame.messages
+    await Match.findOneAndUpdate({_id: findGame?._id}, { messages: [...messagesHistory, { message, player }] })
   } )
+  socket.on('check', async (match, check) => {
+    const room = match
+    const findGame = await Match.findOne({ room });
+    await Match.findOneAndUpdate({_id: findGame?._id}, { check })
+  })
+  socket.on('checkmate', async (match, check) => {
+    const room = match
+    const findGame = await Match.findOne({ room });
+    await Match.findOneAndUpdate({_id: findGame?._id}, { finished: check })
+  })
+  socket.on('move_history', async (match, movement) => {
+    const room = match
+    const findGame = await Match.findOne({ room });
+    const movesRecord = findGame.movesRecord
+    await Match.findOneAndUpdate({_id: findGame._id}, { movesRecord: [...movesRecord, movement ] })
+  })
 });
 
 app.get("/", (req, res) => {
@@ -55,40 +101,3 @@ app.get("/", (req, res) => {
 httpServer.listen(port, () => {
   console.log(`Listening on port ${port}...`);
 });
-
-// const server = serve({
-//   port: 8080,
-//   fetch(req, server) {
-//     if (server.upgrade(req)) {
-//       return; // do not return a Response
-//     }
-//     return new Response("Upgrade failed", { status: 500 });
-//   },
-//   websocket: {
-//     message(ws, message: any) {
-//       console.log(message);
-//       const message2 = JSON.parse(message ?? {})
-//       console.log(message2);
-//       if (message2?.type === 'Create match') {
-//         ws.send(JSON.stringify({
-//           type: 'start_match',
-//           match: makeid(7)
-//         }));
-//       }
-//       if (message2?.type === 'movement') {
-//         ws.send(JSON.stringify({
-//           type: message2.type,
-//           board: message2.board,
-//           match: message2.match
-//         }));
-//       }
-//     },
-//     open(ws) {
-//       console.log('connected');
-//       ws.send('connected');
-
-//     },
-//     close(ws, code, message) {},
-//     drain(ws) {},
-//   }
-// });
