@@ -37,8 +37,8 @@ jobs:
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: "antonioquev-bun-chess-s-60"
-          entrypoint: "/"
-          root: ""
+          project: "antonioquev-bun-chess-s-63"
+          entrypoint: "./"
+          root: "./"
           
           
