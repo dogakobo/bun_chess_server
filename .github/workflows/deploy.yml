@@ -39,6 +39,6 @@ jobs:
         with:
           project: "antonioquev-bun-chess-s-60"
           entrypoint: "/"
-          root: "indes.ts"
+          root: ""
           
           
