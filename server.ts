@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 const mongoose = require ('mongoose');
+const cors = require ('cors');
 const { Schema } = mongoose;
 
 mongoose.connect(`mongodb+srv://${process.env.db_user}:${process.env.db_password}@cluster0.symhl.mongodb.net/chess_db?retryWrites=true&w=majority&appName=Cluster0`)
@@ -25,6 +26,7 @@ const Match = mongoose.model('Match', MatchSchema);
 
 const port = 3001;
 const app = express();
+app.use(cors());
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
@@ -33,6 +35,7 @@ const io = new Server(httpServer, {
 });
 
 io.on("connection", (socket) => {
+  console.log(socket.id);
   socket.on('create_match', async (match, board) => {
     const room = match
     socket.join(room);
@@ -97,6 +100,7 @@ io.on("connection", (socket) => {
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
+
 
 httpServer.listen(port, () => {
   console.log(`Listening on port ${port}...`);
