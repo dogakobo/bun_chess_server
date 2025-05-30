@@ -26,11 +26,13 @@ const Match = mongoose.model('Match', MatchSchema);
 
 const port = 3001;
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: '*'
+}));
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CORS && process.env.CORS.split(' ')
+    origin: '*'
   }
 });
 
