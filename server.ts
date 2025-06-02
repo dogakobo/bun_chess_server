@@ -23,7 +23,7 @@ const MatchSchema = new Schema({
 
 const Match = mongoose.model('Match', MatchSchema);
 
-var allowedDomains =  ['https://chess-app-yxfh.onrender.com/', 'https://chessonline-3a14b5c8d551.herokuapp.com/', '*']
+var allowedDomains =  '*'
 
 const port = 3001;
 const app = express();
