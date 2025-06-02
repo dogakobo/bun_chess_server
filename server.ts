@@ -23,16 +23,35 @@ const MatchSchema = new Schema({
 
 const Match = mongoose.model('Match', MatchSchema);
 
+var allowedDomains =  ['https://chess-app-yxfh.onrender.com/', 'https://chessonline-3a14b5c8d551.herokuapp.com/', 'http://localhost:3000/']
 
 const port = 3001;
 const app = express();
 app.use(cors({
-  origin: ['https://chess-app-yxfh.onrender.com/', 'https://chessonline-3a14b5c8d551.herokuapp.com/', '*']
+  origin: function (origin: any, callback: any) {
+    // bypass the requests with no origin (like curl requests, mobile apps, etc )
+    if (!origin) return callback(null, true);
+
+    if (allowedDomains.indexOf(origin) === -1) {
+      var msg = `This site ${origin} does not have an access. Only specific domains are allowed to access it.`;
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
 }));
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: ['https://chess-app-yxfh.onrender.com/', 'https://chessonline-3a14b5c8d551.herokuapp.com/', '*']
+    origin: function (origin: any, callback: any) {
+    // bypass the requests with no origin (like curl requests, mobile apps, etc )
+    if (!origin) return callback(null, true);
+
+    if (allowedDomains.indexOf(origin) === -1) {
+      var msg = `This site ${origin} does not have an access. Only specific domains are allowed to access it.`;
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
   }
 });
 
