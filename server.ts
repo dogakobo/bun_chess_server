@@ -23,7 +23,7 @@ const MatchSchema = new Schema({
 
 const Match = mongoose.model('Match', MatchSchema);
 
-var allowedDomains =  'https://chess-app-yxfh.onrender.com/'
+var allowedDomains =  '*'
 
 const port = 3001;
 const app = express();
@@ -40,12 +40,11 @@ const app = express();
 //   }
 // }));
 const httpServer = createServer(app);
-const io = new Server(httpServer);
-// const io = new Server(httpServer, {
-//   cors: {
-//     origin: allowedDomains
-//   }
-// });
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedDomains
+  }
+});
 
 io.on("connection", (socket) => {
   console.log(socket.id);
