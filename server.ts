@@ -23,7 +23,7 @@ const MatchSchema = new Schema({
 
 const Match = mongoose.model('Match', MatchSchema);
 
-var allowedDomains =  'https://chessonline-3a14b5c8d551.herokuapp.com/'
+var allowedDomains =  'https://herokuapp.com/'
 
 const port = 3001;
 const app = express();
@@ -44,7 +44,10 @@ const io = new Server(httpServer, {
   cors: {
     origin: allowedDomains,
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
+    pingTimeout: 7000,
+    allowedHeaders: ["content-type"],
+    pingInterval: 3000
   }
 });
 
