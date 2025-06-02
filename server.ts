@@ -45,9 +45,7 @@ const io = new Server(httpServer, {
     origin: allowedDomains,
     methods: ["GET", "POST"],
     credentials: true,
-    pingTimeout: 7000,
     allowedHeaders: ["content-type"],
-    pingInterval: 3000
   }
 });
 
