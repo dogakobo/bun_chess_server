@@ -28,12 +28,7 @@ var allowedDomains =  ['https://chess-app-yxfh.onrender.com/', 'https://chessonl
 const port = 3001;
 const app = express();
 app.use(cors({
-  origin: allowedDomains
-}));
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: function (origin: any, callback: any) {
+  origin: function (origin: any, callback: any) {
     // bypass the requests with no origin (like curl requests, mobile apps, etc )
     if (!origin) return callback(null, true);
 
@@ -43,6 +38,11 @@ const io = new Server(httpServer, {
     }
     return callback(null, true);
   }
+}));
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedDomains
   }
 });
 
