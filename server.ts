@@ -23,7 +23,7 @@ const MatchSchema = new Schema({
 
 const Match = mongoose.model('Match', MatchSchema);
 
-var allowedDomains =  'https://herokuapp.com/'
+var allowedDomains =  '*'
 
 const port = 3001;
 const app = express();
