@@ -27,12 +27,12 @@ const Match = mongoose.model('Match', MatchSchema);
 const port = 3001;
 const app = express();
 app.use(cors({
-  origin: '*'
+  origin: ['https://chess-app-yxfh.onrender.com/', 'https://chessonline-3a14b5c8d551.herokuapp.com/', '*']
 }));
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: '*'
+    origin: ['https://chess-app-yxfh.onrender.com/', 'https://chessonline-3a14b5c8d551.herokuapp.com/', '*']
   }
 });
 
